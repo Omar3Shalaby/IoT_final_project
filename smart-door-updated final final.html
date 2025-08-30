@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Door Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            padding: 15px 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            min-height: 500px;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .sensor-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .sensor-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background: #f44336;
+        }
+
+        .status-warning {
+            background: #ff9800;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        /* Control Buttons */
+        .control-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        /* Alert Cards */
+        .alert-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #f44336;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-fire {
+            border-left-color: #f44336;
+        }
+
+        .alert-intrusion {
+            border-left-color: #ff9800;
+        }
+
+        .alert-access {
+            border-left-color: #4CAF50;
+        }
+
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .history-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 500;
+        }
+
+        .history-table tr:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .control-buttons {
+                justify-content: center;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-container hidden" id="mainNav">
+            <div class="nav">
+                <div class="nav-brand">🏠 Smart Door System</div>
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link active" data-page="dashboard">Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-page="control">Control</a></li>
+                    <li><a href="#" class="nav-link" data-page="alerts">Alerts</a></li>
+                    <li><a href="#" class="nav-link" data-page="history">History</a></li>
+                    <li><a href="#" class="nav-link" id="signOutBtn">Sign Out</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Sign In Page -->
+        <div class="page active" id="signInPage">
+            <div class="auth-container">
+                <h2>🔐 Sign In</h2>
+                <p>Access your Smart Door Control System</p>
+                <br>
+                <form class="auth-form" id="signInForm">
+                    <div class="form-group">
+                        <label for="signInEmail">Email</label>
+                        <input type="email" id="signInEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signInPassword">Password</label>
+                        <input type="password" id="signInPassword" required>
+                    </div>
+                    <button type="submit" class="btn" id="signInBtn">Sign In</button>
+                </form>
+                <br>
+                <p>Don't have an account? <a href="#" id="showSignUp" style="color: #667eea;">Sign Up</a></p>
+            </div>
+        </div>
+
+        <!-- Sign Up Page -->
+        <div class="page" id="signUpPage">
+            <div class="auth-container">
+                <h2>📝 Sign Up</h2>
+                <p>Create your Smart Door account</p>
+                <br>
+                <form class="auth-form" id="signUpForm">
+                    <div class="form-group">
+                        <label for="signUpEmail">Email</label>
+                        <input type="email" id="signUpEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signUpPassword">Password</label>
+                        <input type="password" id="signUpPassword" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="signUpConfirm">Confirm Password</label>
+                        <input type="password" id="signUpConfirm" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn" id="signUpBtn">Sign Up</button>
+                </form>
+                <br>
+                <p>Already have an account? <a href="#" id="showSignIn" style="color: #667eea;">Sign In</a></p>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div class="page" id="dashboardPage">
+            <h2>📊 Dashboard</h2>
+            <p>Real-time sensor monitoring</p>
+            
+            <!-- Connection Status -->
+            <div class="control-section">
+                <h3>🔗 System Connection</h3>
+                <div id="connectionStatus">
+                    <span class="status-indicator status-offline" id="connectionIndicator"></span>
+                    <span id="connectionText">Connecting to door system...</span>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="sensor-card">
+                    <h3>💡 Light Level</h3>
+                    <div class="sensor-value" id="lightLevel">--</div>
+                    <p>Status: <span id="lightStatus">Unknown</span></p>
+                </div>
+
+                <div class="sensor-card">
+                    <h3>👤 Motion Detection</h3>
+                    <div class="sensor-value" id="motionStatus">
+                        <span class="status-indicator status-offline"></span>
+                        No Motion
+                    </div>
+                    <p>Last detected: <span id="motionLastDetected">Never</span></p>
+                </div>
+
+                <div class="sensor-card">
+                    <h3>🔥 Fire Sensor</h3>
+                    <div class="sensor-value" id="fireStatus">
+                        <span class="status-indicator status-online"></span>
+                        Normal
+                    </div>
+                    <p>System: <span id="fireSystemStatus">Active</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Page -->
+        <div class="page" id="controlPage">
+            <h2>🎮 Door Control</h2>
+            <p>Remote door operations and password management</p>
+
+            <div class="control-section">
+                <h3>🔐 Door Authentication</h3>
+                <div class="form-group" style="max-width: 300px;">
+                    <label for="controlPassword">Enter Current Door Password:</label>
+                    <input type="password" id="controlPassword" placeholder="Enter door password">
+                </div>
+                <br>
+                <div class="control-buttons">
+                    <button class="btn btn-success" id="remoteUnlock">🔓 Unlock Door</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>🔊 Test Alarm System</h3>
+                <p>Test different alarm sounds for security alerts</p>
+                <div class="control-buttons">
+                    <button class="btn btn-success" id="testLowAlarm">🔔 Low Priority</button>
+                    <button class="btn btn-warning" id="testMediumAlarm">🔔 Medium Priority</button>
+                    <button class="btn btn-danger" id="testHighAlarm">🔔 High Priority</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>🔑 Change Door Password</h3>
+                <div style="max-width: 400px;">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password:</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password:</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password (4-8 digits)">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password:</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                    <button class="btn btn-warning" id="changePasswordBtn">🔐 Change Password</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Page -->
+        <div class="page" id="alertsPage">
+            <h2>🚨 Security Alerts</h2>
+            <p>Fire incidents and security notifications</p>
+
+            <div id="alertsList">
+                <div class="alert-card alert-fire">
+                    <h3>🔥 Fire Alert</h3>
+                    <p><strong>Status:</strong> Resolved</p>
+                    <p><strong>Time:</strong> 2024-12-20 14:30:25</p>
+                    <p><strong>Action:</strong> Door automatically opened for evacuation</p>
+                    <p><strong>Duration:</strong> 45 seconds</p>
+                </div>
+
+                <div class="alert-card alert-intrusion">
+                    <h3>👤 Night Intrusion</h3>
+                    <p><strong>Status:</strong> Resolved</p>
+                    <p><strong>Time:</strong> 2024-12-20 02:15:10</p>
+                    <p><strong>Action:</strong> Alarm triggered, person left after 8 seconds</p>
+                    <p><strong>Duration:</strong> 8 seconds</p>
+                </div>
+
+                <div class="alert-card alert-access">
+                    <h3>✅ Authorized Access</h3>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p><strong>Time:</strong> 2024-12-20 09:45:15</p>
+                    <p><strong>Action:</strong> Door unlocked with correct password</p>
+                    <p><strong>User:</strong> Authenticated</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Page -->
+        <div class="page" id="historyPage">
+            <h2>📋 Access History</h2>
+            <p>Complete log of all system activities</p>
+
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Event Type</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td>2024-12-20 16:45:30</td>
+                        <td>Door Access</td>
+                        <td>Success</td>
+                        <td>Correct password entered</td>
+                    </tr>
+                    <tr>
+                        <td>2024-12-20 14:30:25</td>
+                        <td>Fire Emergency</td>
+                        <td>Resolved</td>
+                        <td>Auto door open - 45s duration</td>
+                    </tr>
+                    <tr>
+                        <td>2024-12-20 12:15:10</td>
+                        <td>Motion Detection</td>
+                        <td>Normal</td>
+                        <td>Daytime visitor - no alarm</td>
+                    </tr>
+                    <tr>
+                        <td>2024-12-20 09:30:45</td>
+                        <td>Door Access</td>
+                        <td>Failed</td>
+                        <td>Wrong password (3 attempts)</td>
+                    </tr>
+                    <tr>
+                        <td>2024-12-20 02:15:10</td>
+                        <td>Night Intrusion</td>
+                        <td>Alarm</td>
+                        <td>Motion detected - 8s duration</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- MQTT Client -->
+    <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+    
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://krzfnxjychlxxdvhuuck.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyemZueGp5Y2hseHhkdmh1dWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MTM5ODcsImV4cCI6MjA3MjA4OTk4N30.ZBaIk3zJx2bZLosPbpCBTve0Kgmm_qkuLoFURqSZMIk';
+        
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // MQTT Configuration (HiveMQ Cloud - Secure)
+        const MQTT_BROKER = 'wss://514a86bd46594cd09a59db9eae156720.s1.eu.hivemq.cloud:8884/mqtt';
+        const MQTT_USERNAME = 'hivemq.webclient.1756437583110';
+        const MQTT_PASSWORD = '34vO:1At7@KW>DyjrR#u';
+        const MQTT_TOPICS = {
+            SENSOR_DATA: 'smartdoor/sensors',
+            DOOR_CONTROL: 'smartdoor/control',
+            ALERTS: 'smartdoor/alerts',
+            STATUS: 'smartdoor/status'
+        };
+        
+        // Basic navigation functionality
+        class SmartDoorApp {
+            constructor() {
+                this.currentUser = null;
+                this.isAuthenticated = false;
+                this.mqttClient = null;
+                this.connectionStatus = 'disconnected';
+                this.audioContext = null;
+                this.isAlarmPlaying = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.checkAuthStatus();
+            }
+
+            setupEventListeners() {
+                // Auth form switching
+                document.getElementById('showSignUp').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showPage('signUpPage');
+                });
+
+                document.getElementById('showSignIn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showPage('signInPage');
+                });
+
+                // Navigation
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = e.target.dataset.page;
+                        if (page) {
+                            this.showPage(page + 'Page');
+                            this.updateActiveNav(e.target);
+                            
+                            // Load fresh data when switching to certain pages
+                            if (page === 'history') {
+                                this.loadHistory();
+                            } else if (page === 'alerts') {
+                                this.loadAlerts();
+                            }
+                        }
+                    });
+                });
+
+                // Sign out
+                document.getElementById('signOutBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.signOut();
+                });
+
+                // Form submissions (placeholder for now)
+                document.getElementById('signInForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSignIn();
+                });
+
+                document.getElementById('signUpForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSignUp();
+                });
+                
+                // Control button listeners
+                document.getElementById('remoteUnlock').addEventListener('click', () => {
+                    this.sendDoorCommand('REMOTE_UNLOCK');
+                });
+                
+                // Test alarm button listeners
+                document.getElementById('testLowAlarm').addEventListener('click', () => {
+                    this.playAlarm('low');
+                });
+                
+                document.getElementById('testMediumAlarm').addEventListener('click', () => {
+                    this.playAlarm('medium');
+                });
+                
+                document.getElementById('testHighAlarm').addEventListener('click', () => {
+                    this.playAlarm('high');
+                });
+                
+                // Password change listener
+                document.getElementById('changePasswordBtn').addEventListener('click', () => {
+                    this.changePassword();
+                });
+            }
+
+            showPage(pageId) {
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // Show selected page
+                document.getElementById(pageId).classList.add('active');
+            }
+
+            updateActiveNav(activeLink) {
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                activeLink.classList.add('active');
+            }
+
+            async checkAuthStatus() {
+                // Check if user is already signed in
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    this.currentUser = user;
+                    this.isAuthenticated = true;
+                    this.showMainApp();
+                    console.log('User already signed in:', user.email);
+                }
+            }
+
+            showMainApp() {
+                document.getElementById('mainNav').classList.remove('hidden');
+                this.showPage('dashboardPage');
+                this.connectMQTT();
+                this.loadSensorData();
+                this.loadHistory();
+                this.loadAlerts();
+                this.requestNotificationPermission();
+            }
+
+            hideMainApp() {
+                document.getElementById('mainNav').classList.add('hidden');
+                this.showPage('signInPage');
+                this.disconnectMQTT();
+            }
+
+            async handleSignIn() {
+                const email = document.getElementById('signInEmail').value;
+                const password = document.getElementById('signInPassword').value;
+                const signInBtn = document.getElementById('signInBtn');
+                
+                // Show loading state
+                signInBtn.textContent = 'Signing in...';
+                signInBtn.disabled = true;
+                
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    this.currentUser = data.user;
+                    this.isAuthenticated = true;
+                    console.log('Sign in successful:', data.user.email);
+                    
+                    // Log the access
+                    await this.logActivity('Sign In', 'Success', `User ${data.user.email} signed in`);
+                    
+                    this.showMainApp();
+                    
+                } catch (error) {
+                    console.error('Sign in error:', error.message);
+                    alert('Sign in failed: ' + error.message);
+                } finally {
+                    signInBtn.textContent = 'Sign In';
+                    signInBtn.disabled = false;
+                }
+            }
+
+            async handleSignUp() {
+                const email = document.getElementById('signUpEmail').value;
+                const password = document.getElementById('signUpPassword').value;
+                const confirm = document.getElementById('signUpConfirm').value;
+                const signUpBtn = document.getElementById('signUpBtn');
+                
+                if (password !== confirm) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    alert('Password must be at least 6 characters long!');
+                    return;
+                }
+                
+                // Show loading state
+                signUpBtn.textContent = 'Creating Account...';
+                signUpBtn.disabled = true;
+                
+                try {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    console.log('Sign up successful:', data);
+                    
+                    // Check if email confirmation is required
+                    if (data.user && !data.user.email_confirmed_at) {
+                        alert('Account created! Please check your email to confirm your account, then sign in.');
+                        this.showPage('signInPage');
+                    } else {
+                        // Auto sign in if no email confirmation needed
+                        this.currentUser = data.user;
+                        this.isAuthenticated = true;
+                        this.showMainApp();
+                    }
+                    
+                } catch (error) {
+                    console.error('Sign up error:', error.message);
+                    alert('Sign up failed: ' + error.message);
+                } finally {
+                    signUpBtn.textContent = 'Sign Up';
+                    signUpBtn.disabled = false;
+                }
+            }
+
+            async signOut() {
+                try {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error('Sign out error:', error.message);
+                    }
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                } finally {
+                    this.isAuthenticated = false;
+                    this.currentUser = null;
+                    this.hideMainApp();
+                    console.log('Signed out successfully');
+                }
+            }
+            
+            // Log activities to database
+            async logActivity(eventType, status, details) {
+                try {
+                    const { error } = await supabase
+                        .from('activity_logs')
+                        .insert([{
+                            user_id: this.currentUser?.id,
+                            event_type: eventType,
+                            status: status,
+                            details: details,
+                            timestamp: new Date().toISOString()
+                        }]);
+                    
+                    if (error) {
+                        console.error('Failed to log activity:', error.message);
+                    }
+                } catch (error) {
+                    console.error('Log activity error:', error);
+                }
+            }
+            
+            // Load sensor data from database
+            async loadSensorData() {
+                try {
+                    const { data, error } = await supabase
+                        .from('sensor_data')
+                        .select('*')
+                        .order('timestamp', { ascending: false })
+                        .limit(1);
+                    
+                    if (error) {
+                        console.error('Failed to load sensor data:', error.message);
+                        return;
+                    }
+                    
+                    if (data && data.length > 0) {
+                        const latest = data[0];
+                        this.updateSensorDisplay(latest);
+                    }
+                } catch (error) {
+                    console.error('Load sensor data error:', error);
+                }
+            }
+
+            // Load activity history from database
+            async loadHistory() {
+                try {
+                    const { data, error } = await supabase
+                        .from('activity_logs')
+                        .select('*')
+                        .order('timestamp', { ascending: false })
+                        .limit(20);
+                    
+                    if (error) {
+                        console.error('Failed to load history:', error.message);
+                        return;
+                    }
+                    
+                    this.updateHistoryTable(data || []);
+                } catch (error) {
+                    console.error('Load history error:', error);
+                }
+            }
+
+            // Load alerts from database  
+            async loadAlerts() {
+                try {
+                    const { data, error } = await supabase
+                        .from('door_alerts')
+                        .select('*')
+                        .order('timestamp', { ascending: false })
+                        .limit(10);
+                    
+                    if (error) {
+                        console.error('Failed to load alerts:', error.message);
+                        return;
+                    }
+                    
+                    this.updateAlertsList(data || []);
+                } catch (error) {
+                    console.error('Load alerts error:', error);
+                }
+            }
+
+            // Update history table with real data
+            updateHistoryTable(historyData) {
+                const tbody = document.getElementById('historyTableBody');
+                
+                if (historyData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No activity history found</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = historyData.map(item => {
+                    const date = new Date(item.timestamp).toLocaleString();
+                    return `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${item.event_type}</td>
+                            <td>${item.status}</td>
+                            <td>${item.details}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Update alerts list with real data
+            updateAlertsList(alertsData) {
+                const alertsList = document.getElementById('alertsList');
+                
+                if (alertsData.length === 0) {
+                    alertsList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No security alerts found</div>';
+                    return;
+                }
+                
+                alertsList.innerHTML = alertsData.map(alert => {
+                    const date = new Date(alert.timestamp).toLocaleString();
+                    let alertClass = 'alert-card';
+                    let icon = '🔔';
+                    
+                    // Determine alert type styling
+                    if (alert.alert_type.toLowerCase().includes('fire')) {
+                        alertClass += ' alert-fire';
+                        icon = '🔥';
+                    } else if (alert.alert_type.toLowerCase().includes('intrusion')) {
+                        alertClass += ' alert-intrusion';
+                        icon = '👤';
+                    } else if (alert.alert_type.toLowerCase().includes('access')) {
+                        alertClass += ' alert-access';
+                        icon = '✅';
+                    }
+                    
+                    return `
+                        <div class="${alertClass}">
+                            <h3>${icon} ${alert.alert_type}</h3>
+                            <p><strong>Status:</strong> ${alert.resolved ? 'Resolved' : 'Active'}</p>
+                            <p><strong>Time:</strong> ${date}</p>
+                            <p><strong>Message:</strong> ${alert.message}</p>
+                            <p><strong>Severity:</strong> ${alert.severity}</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Update sensor display
+            updateSensorDisplay(sensorData) {
+                // Update light level
+                document.getElementById('lightLevel').textContent = sensorData.light_level || '--';
+                document.getElementById('lightStatus').textContent = sensorData.is_dark ? 'Dark' : 'Light';
+                
+                // Update motion status
+                const motionStatus = document.getElementById('motionStatus');
+                motionStatus.innerHTML = `
+                    <span class="status-indicator ${sensorData.motion_detected ? 'status-warning' : 'status-offline'}"></span>
+                    ${sensorData.motion_detected ? 'Motion Detected' : 'No Motion'}
+                `;
+                
+                // Update fire status
+                const fireStatus = document.getElementById('fireStatus');
+                fireStatus.innerHTML = `
+                    <span class="status-indicator ${sensorData.fire_detected ? 'status-danger' : 'status-online'}"></span>
+                    ${sensorData.fire_detected ? 'FIRE DETECTED!' : 'Normal'}
+                `;
+            }
+            
+            // MQTT Connection Management
+            connectMQTT() {
+                try {
+                    console.log('Connecting to MQTT broker...');
+                    
+                    // Generate unique client ID
+                    const clientId = 'smartdoor_' + this.currentUser.id.slice(0, 8) + '_' + Date.now();
+                    
+                    this.mqttClient = mqtt.connect(MQTT_BROKER, {
+                        clientId: clientId,
+                        clean: true,
+                        connectTimeout: 4000,
+                        reconnectPeriod: 1000,
+                        username: MQTT_USERNAME,
+                        password: MQTT_PASSWORD,
+                        protocol: 'wss'
+                    });
+                    
+                    this.mqttClient.on('connect', () => {
+                        console.log('MQTT Connected!');
+                        this.connectionStatus = 'connected';
+                        this.updateConnectionStatus();
+                        
+                        // Subscribe to topics
+                        this.mqttClient.subscribe(MQTT_TOPICS.SENSOR_DATA, (err) => {
+                            if (!err) {
+                                console.log('Subscribed to sensor data');
+                            }
+                        });
+                        
+                        this.mqttClient.subscribe(MQTT_TOPICS.ALERTS, (err) => {
+                            if (!err) {
+                                console.log('Subscribed to alerts');
+                            }
+                        });
+                        
+                        this.mqttClient.subscribe(MQTT_TOPICS.STATUS, (err) => {
+                            if (!err) {
+                                console.log('Subscribed to status updates');
+                            }
+                        });
+                    });
+                    
+                    this.mqttClient.on('message', (topic, message) => {
+                        this.handleMQTTMessage(topic, message);
+                    });
+                    
+                    this.mqttClient.on('error', (error) => {
+                        console.error('MQTT Error:', error);
+                        this.connectionStatus = 'error';
+                        this.updateConnectionStatus();
+                    });
+                    
+                    this.mqttClient.on('offline', () => {
+                        console.log('MQTT Offline');
+                        this.connectionStatus = 'offline';
+                        this.updateConnectionStatus();
+                    });
+                    
+                } catch (error) {
+                    console.error('MQTT connection error:', error);
+                    this.connectionStatus = 'error';
+                    this.updateConnectionStatus();
+                }
+            }
+            
+            disconnectMQTT() {
+                if (this.mqttClient) {
+                    this.mqttClient.end();
+                    this.mqttClient = null;
+                    this.connectionStatus = 'disconnected';
+                    console.log('MQTT disconnected');
+                }
+            }
+            
+            handleMQTTMessage(topic, message) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    console.log('MQTT Message:', topic, data);
+                    
+                    switch (topic) {
+                        case MQTT_TOPICS.SENSOR_DATA:
+                            this.handleSensorData(data);
+                            break;
+                        case MQTT_TOPICS.ALERTS:
+                            this.handleAlert(data);
+                            break;
+                        case MQTT_TOPICS.STATUS:
+                            this.handleStatusUpdate(data);
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Error parsing MQTT message:', error);
+                }
+            }
+            
+            handleSensorData(data) {
+                // Update real-time sensor display
+                this.updateSensorDisplay(data);
+                
+                // Save to database
+                this.saveSensorData(data);
+            }
+            
+            handleAlert(data) {
+                console.log('🚨 Alert received:', data);
+                
+                // Play audio alarm
+                this.playAlarm(data.severity || 'medium');
+                
+                // Show browser notification if permitted
+                if (Notification.permission === 'granted') {
+                    new Notification('Smart Door Alert', {
+                        body: data.message || 'Security alert detected',
+                        icon: '/favicon.ico'
+                    });
+                }
+                
+                // Save alert to database
+                this.saveAlert(data);
+                
+                // Reload alerts if on alerts page
+                if (document.getElementById('alertsPage').classList.contains('active')) {
+                    this.loadAlerts();
+                }
+            }
+            
+            handleStatusUpdate(data) {
+                console.log('Status update:', data);
+                // Handle status updates from ESP32
+            }
+            
+            sendDoorCommand(command) {
+                if (!this.mqttClient || this.connectionStatus !== 'connected') {
+                    alert('Not connected to door system. Please wait...');
+                    return;
+                }
+                
+                const password = document.getElementById('controlPassword')?.value || '';
+                
+                if (command.includes('REMOTE') && !password) {
+                    alert('Please enter the door password first');
+                    return;
+                }
+                
+                const message = {
+                    command: command,
+                    password: password,
+                    user: this.currentUser.email,
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.mqttClient.publish(MQTT_TOPICS.DOOR_CONTROL, JSON.stringify(message));
+                console.log('Door command sent:', command);
+                
+                // Log the command
+                this.logActivity('Door Command', 'Sent', `Command: ${command}`);
+                
+                // Clear password field after use
+                if (document.getElementById('controlPassword')) {
+                    document.getElementById('controlPassword').value = '';
+                }
+            }
+            
+            updateConnectionStatus() {
+                const indicator = document.getElementById('connectionIndicator');
+                const text = document.getElementById('connectionText');
+                
+                if (!indicator || !text) return;
+                
+                switch (this.connectionStatus) {
+                    case 'connected':
+                        indicator.className = 'status-indicator status-online';
+                        text.textContent = 'Connected to door system';
+                        break;
+                    case 'connecting':
+                        indicator.className = 'status-indicator status-warning';
+                        text.textContent = 'Connecting to door system...';
+                        break;
+                    case 'offline':
+                    case 'disconnected':
+                        indicator.className = 'status-indicator status-offline';
+                        text.textContent = 'Disconnected from door system';
+                        break;
+                    case 'error':
+                        indicator.className = 'status-indicator status-offline';
+                        text.textContent = 'Connection error - retrying...';
+                        break;
+                }
+            }
+            
+            async saveSensorData(data) {
+                try {
+                    const { error } = await supabase
+                        .from('sensor_data')
+                        .insert([{
+                            user_id: this.currentUser?.id,
+                            door_locked: data.door_locked,
+                            light_level: data.light_level,
+                            is_dark: data.is_dark,
+                            motion_detected: data.motion_detected,
+                            fire_detected: data.fire_detected,
+                            timestamp: new Date().toISOString()
+                        }]);
+                    
+                    if (error) {
+                        console.error('Failed to save sensor data:', error.message);
+                    }
+                } catch (error) {
+                    console.error('Save sensor data error:', error);
+                }
+            }
+
+            // Save alert to database
+            async saveAlert(alertData) {
+                try {
+                    const { error } = await supabase
+                        .from('door_alerts')
+                        .insert([{
+                            user_id: this.currentUser?.id,
+                            alert_type: alertData.type || 'Unknown',
+                            message: alertData.message || 'No details provided',
+                            severity: alertData.severity || 'medium',
+                            resolved: false,
+                            timestamp: new Date().toISOString()
+                        }]);
+                    
+                    if (error) {
+                        console.error('Failed to save alert:', error.message);
+                    } else {
+                        // Send email notification after successfully saving alert
+                        await this.sendAlertEmail(alertData);
+                    }
+                } catch (error) {
+                    console.error('Save alert error:', error);
+                }
+            }
+
+            // Send email notification for alerts
+            async sendAlertEmail(alertData) {
+                try {
+                    // Using EmailJS service (free tier available)
+                    const emailData = {
+                        to_email: this.currentUser.email,
+                        from_name: 'Smart Door System',
+                        subject: `Security Alert: ${alertData.type}`,
+                        message: `
+                            Alert Type: ${alertData.type}
+                            Message: ${alertData.message}
+                            Severity: ${alertData.severity}
+                            Time: ${new Date().toLocaleString()}
+                            
+                            Please check your Smart Door Control System for more details.
+                        `
+                    };
+                    
+                    // Note: You'll need to set up EmailJS service and get your service ID, template ID, and public key
+                    // For now, we'll log that an email would be sent
+                    console.log('Email notification would be sent:', emailData);
+                    
+                    // Uncomment and configure when you set up EmailJS:
+                    // await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', emailData, 'YOUR_PUBLIC_KEY');
+                    
+                } catch (error) {
+                    console.error('Failed to send email notification:', error);
+                }
+            }
+            
+            requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        console.log('Notification permission:', permission);
+                    });
+                }
+                
+                // Initialize audio context for alarms
+                this.initializeAudio();
+            }
+
+            // Initialize audio context for alarm sounds
+            initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.error('Audio context not supported:', error);
+                }
+            }
+
+            // Play alarm sound based on severity
+            playAlarm(severity = 'medium') {
+                if (!this.audioContext || this.isAlarmPlaying) return;
+                
+                this.isAlarmPlaying = true;
+                
+                // Different alarm patterns based on severity
+                const alarmPatterns = {
+                    'low': { frequency: 800, duration: 0.3, repeat: 2 },
+                    'medium': { frequency: 1000, duration: 0.5, repeat: 3 },
+                    'high': { frequency: 1200, duration: 0.7, repeat: 5 }
+                };
+                
+                const pattern = alarmPatterns[severity] || alarmPatterns['medium'];
+                
+                this.playBeepSequence(pattern.frequency, pattern.duration, pattern.repeat);
+            }
+
+            // Play beep sequence
+            playBeepSequence(frequency, duration, count) {
+                let currentBeep = 0;
+                
+                const playBeep = () => {
+                    if (currentBeep >= count) {
+                        this.isAlarmPlaying = false;
+                        return;
+                    }
+                    
+                    // Create oscillator for beep sound
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                    oscillator.type = 'square';
+                    
+                    // Set volume envelope
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration);
+                    
+                    currentBeep++;
+                    
+                    // Schedule next beep
+                    setTimeout(playBeep, (duration + 0.2) * 1000);
+                };
+                
+                playBeep();
+            }
+            
+            // Change door password
+            changePassword() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                // Validation
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert('Please fill in all password fields');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('New passwords do not match');
+                    return;
+                }
+                
+                if (newPassword.length < 4 || newPassword.length > 8) {
+                    alert('New password must be 4-8 characters long');
+                    return;
+                }
+                
+                // Check if new password contains only digits
+                if (!/^\d+$/.test(newPassword)) {
+                    alert('Password must contain only digits');
+                    return;
+                }
+                
+                if (!this.mqttClient || this.connectionStatus !== 'connected') {
+                    alert('Not connected to door system. Please wait...');
+                    return;
+                }
+                
+                const message = {
+                    command: 'CHANGE_PASSWORD',
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    user: this.currentUser.email,
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.mqttClient.publish(MQTT_TOPICS.DOOR_CONTROL, JSON.stringify(message));
+                console.log('Password change request sent');
+                
+                // Log the attempt
+                this.logActivity('Password Change', 'Requested', 'Password change requested');
+                
+                // Clear password fields
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+                alert('Password change request sent to door system');
+            }
+        }
+
+        // Initialize the app
+        const app = new SmartDoorApp();
+
+        // Simulate real-time data updates (placeholder)
+        function updateSensorData() {
+            const lightLevel = Math.floor(Math.random() * 1000) + 500;
+            document.getElementById('lightLevel').textContent = lightLevel;
+            document.getElementById('lightStatus').textContent = lightLevel > 800 ? 'Dark' : 'Light';
+        }
+
+        // Update sensor data every 5 seconds (demo)
+        setInterval(updateSensorData, 5000);
+        updateSensorData(); // Initial update
+    </script>
+</body>
+</html>
